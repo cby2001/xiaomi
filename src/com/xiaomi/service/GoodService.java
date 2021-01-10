@@ -52,4 +52,15 @@ public class GoodService {
 		return selectByExample;
 	}
 	
+	public Good getGoodByGid(int gid){
+		SqlSession sqlSession = DBUtil.getSqlSession();
+		GoodMapper mapper = sqlSession.getMapper(GoodMapper.class);
+		GoodExample example = new GoodExample();
+		Criteria condition = example.createCriteria();
+		condition.andGoodIdEqualTo(gid);
+		List<Good> selectByExample = mapper.selectByExample(example);
+		sqlSession.close();
+		return selectByExample.get(0);
+	}
+	
 }

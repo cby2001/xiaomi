@@ -59,13 +59,42 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	 			$("#total_price").attr("value",total_price);
 	 			$("#total_count").attr("value",total_count);
 	 		}
-	 		function change_number(){
-	 			var num = document.getElementById("good_num").value;
+	 		function change_number(obj){
+	 			var num = obj.value;
 	 			if (num == 0){
 	 				alert("该宝贝不能减少了哟~");
 	 			}else{
-	 				document.getElementById("operate").value="change_number";
-	 				document.forms[0].submit();
+	 				/* document.getElementById("operate").value="change_number";
+	 				document.forms[0].submit(); */
+	 				var operate = "change_number2";
+	 				var good_num = num;
+	 				var good_price = $(obj).parents(".content2").find("#good_price").val();
+	 				var cart_id= $(obj).parents(".content2").prev().prev().val();
+	 				
+	 				$.ajax({
+	 					url:"CartServlet",
+	 					data:{
+	 						"operate":operate,
+	 						"good_num":good_num,
+	 						"good_price":good_price,
+	 						"cart_id":cart_id
+	 					},
+	 					dataType:"json",
+	 					type:"post",
+	 					success:function(data){
+	 						debugger
+	 						if(data.updateFlag){
+	 							//修改页面对应的数量
+	 							$(obj).parents(".content2").find("#good_num").val(data.good_num);
+	 							//修改页面对应的总价
+	 							$(obj).parents(".content2").find("#price").val(data.good_price);
+	 							$(obj).parents(".content2").find("#price").next().text(data.good_price.toFixed(1));
+	 						}else{
+	 							alert("数量修改失败！");
+	 						}
+	 					}
+	 					
+	 				})
 	 			}
 	 		}
 	 		function settlement(){
@@ -90,30 +119,29 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<div class="wxts fl ml20">温馨提示：产品是否购买成功，以最终下单为准哦，请尽快结算</div>
 			<div class="dlzc fr">
 				<ul>
-					<% 
-					String username = (String)session.getAttribute("username");
-					int uid = (Integer)session.getAttribute("uid");
-					if(username!=null){
-					%>
-						<li><%=username %></li>
-						<li><a href="UserServlet?operate=selfinfo">个人中心</a></li>
-						<li><a href="UserServlet?operate=logout">退出登录 </a> </li>
-						
-				<% }else{%>
+					
+				<c:if test="${user.username!=null}">
+					<li>欢迎光临！${user.username}</li>
+				</c:if>	
 				
-						<li><a href="login.jsp" >登录</a></li>
-						<li>|</li>
-						<li><a href="register.jsp" >注册</a></li>
-						<li>|</li>
-						<li><a href="">消息通知</a></li>
-				<%} %>
-				</ul>
+				<li><a href="UserServlet?operate=selfinfo">个人中心</a></li>
+				<li><a href="UserServlet?operate=logout">退出登录 </a> </li>
+		
+				<c:if test="${user.username==null}">
+					<li><a href="login.jsp" >登录</a></li>
+					<li>|</li>
+					<li><a href="register.jsp" >注册</a></li>
+					<li>|</li>
+				</c:if>
 				
+				<li><a href="">消息通知</a></li>
+				</ul>				
 			</div>
 			<div class="clear"></div>
 		</div>
 		<div class="xiantiao"></div>
 		<div class="gwcxqbj">
+		${errorMess}
 		<form method="post" action="CartServlet">
 		<input type="hidden" id="operate" name="operate" value="jiesuan"/>
 			<div class="gwcxd center">
@@ -130,23 +158,35 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</div>
 				<% int count = 0;%>
 				<c:forEach items="${cartlist}" var="list">
-				<% count += 1; %>
-				<input type="hidden" id = "cart_id" name = "cart_id" value ="${list.pre_id}" />
-				<input type = "hidden" id = "temperate_id" name = "temperate_id" value = "flag"/>
-					<div class="content2 center">
-						<div class="sub_content fl">
-							<input type="checkbox" id = "check" name="check" class="quanxuan" onclick="summary()" />
+				<c:if test="${list.status == 0}">
+					<% count += 1; %>
+					<input type="hidden" id = "cart_id" name = "cart_id" value ="${list.preId}" />
+					<input type = "hidden" id = "temperate_id" name = "temperate_id" value = "flag"/>
+						<div class="content2 center">
+							<div class="sub_content fl">
+								<input type="checkbox" id = "check" name="check" value="${list.preId}" class="quanxuan" onclick="summary()" />
+							</div>
+							<div class="sub_content fl"><img style="height:80px;width:80px;" src="${list.g.goodImg}"></div>
+							<div class="sub_content fl ft20">${list.g.goodName} ${list.g.goodType} ${list.g.goodColor}</div>
+							<div class="sub_content fl ft20">
+								<input type = "hidden" id= "good_price" name = "good_price" value="${list.g.goodPrice}"/>
+								<span>${list.g.goodPrice}</span>
+							</div>
+							<div class="sub_content fl">
+								<input class="shuliang" type="number" autocomplete="off" id = "good_num" name = "good_num"value="${list.goodNum}" step="1" min="1" max = "5" onblur="change_number(this)">
+							</div>
+							<div class="sub_content fl" name ="price">
+									<span>
+										<input type = "hidden" id= "price" value="${list.price}"/>
+										<span>
+										${list.price}
+										</span>
+									</span>
+									</div>
+							<div class="sub_content fl"><a href="CartServlet?operate=deleteCart&id=${list.preId}"><img src="./image/timg.png"></a></div>
+							<div class="clear"></div>
 						</div>
-						<div class="sub_content fl"><img style="height:80px;width:80px;" src="${list.g.good_img}"></div>
-						<div class="sub_content fl ft20">${list.g.good_name} ${list.g.good_type} ${list.g.good_color}</div>
-						<div class="sub_content fl ft20"><input type = "hidden" id= "good_price" name = "good_price" value="${list.g.good_price}"/>${list.g.good_price}</div>
-						<div class="sub_content fl">
-							<input class="shuliang" type="number" autocomplete="off" id = "good_num" name = "good_num"value="${list.good_num}" step="1" min="1" max = "5" onblur="change_number()">
-						</div>
-						<div class="sub_content fl" name ="price"><span><input type = "hidden" id= "price" value="${list.price}"/>${list.price}</span></div>
-						<div class="sub_content fl"><a href="CartServlet?operate=deleteCart&id=${list.pre_id}"><img src="./image/timg.png"></a></div>
-						<div class="clear"></div>
-					</div>
+					</c:if>
 				</c:forEach>
 			</div>
 			<div class="jiesuandan mt20 center">

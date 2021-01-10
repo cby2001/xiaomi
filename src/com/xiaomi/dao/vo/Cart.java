@@ -13,8 +13,19 @@ public class Cart {
 
     private Float price;
     
+    private Good g;
+    
+    
 
-    public Cart() {
+    public Good getG() {
+		return g;
+	}
+
+	public void setG(Good g) {
+		this.g = g;
+	}
+
+	public Cart() {
 		super();
 	}
 

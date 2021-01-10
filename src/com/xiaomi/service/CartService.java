@@ -44,4 +44,31 @@ public class CartService {
 		sqlSession.close();
 		return updateByExampleSelective>0?true:false;
 	}
+	
+	public List<Cart> findCartByUid(int uid){
+		SqlSession sqlSession = DBUtil.getSqlSession();
+		CartMapper mapper = sqlSession.getMapper(CartMapper.class);
+		CartExample example = new CartExample();
+		Criteria condition = example.createCriteria();
+		condition.andUidEqualTo(uid);
+		List<Cart> selectByExample = mapper.selectByExample(example);
+		sqlSession.close();
+		return  selectByExample.size() > 0?selectByExample:null;
+	}
+	
+	public boolean deleteCart(String preId){
+		SqlSession sqlSession = DBUtil.getSqlSession();
+		CartMapper mapper = sqlSession.getMapper(CartMapper.class);
+		int deleteByPrimaryKey = mapper.deleteByPrimaryKey(Integer.valueOf(preId));
+		sqlSession.commit();
+		sqlSession.close();
+		return deleteByPrimaryKey > 0?true:false;
+	}
+	
+	public Cart selectOneCart(int cartid1) {
+		SqlSession sqlSession = DBUtil.getSqlSession();
+		CartMapper mapper = sqlSession.getMapper(CartMapper.class);
+		Cart cart = mapper.selectByPrimaryKey(cartid1);
+		return cart;
+	}
 }

@@ -74,7 +74,10 @@ public class GoodServlet extends HttpServlet {
 		
 		if("buy".equals(operate)) {
 			CartService cartService = new CartService();
-			int uid = ((Users)request.getSession().getAttribute("user")).getUid();
+			int uid = 0;
+			if(request.getSession().getAttribute("user") != null) {
+				uid = ((Users)request.getSession().getAttribute("user")).getUid();
+			}
 			String color = request.getParameter("color");
 			String type = request.getParameter("type");
 			String good_name = request.getParameter("good_name");
@@ -102,6 +105,7 @@ public class GoodServlet extends HttpServlet {
 			}
 			request.getRequestDispatcher("/success_add_cart.jsp").forward(request, response);
 		}
+		
 		
 		
 		
